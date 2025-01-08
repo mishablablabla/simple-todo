@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Форма для добавления задачи</title>
+    <link rel="stylesheet" href="style/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Добавь свою задачу</h1>
+      <form id="taskForm">
+        <label for="taskTitle">Заголовок задачи:</label>
+        <input
+          type="text"
+          id="taskTitle"
+          name="title"
+          placeholder="Введите заголовок задачи"
+          required
+        />
+
+        <label for="taskDescription">Описание задачи:</label>
+        <textarea
+          id="taskDescription"
+          name="description"
+          placeholder="Введите описание задачи"
+          required
+        ></textarea>
+
+        <button id="submit_button" type="submit">Добавить задачу</button>
+      </form>
+      <div id="responseMessage" class="hide"></div>
+    </div>
+
+    <script src="js/script.js"></script>
+  </body>
+</html>
