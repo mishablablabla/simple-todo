@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Форма для добавления задачи</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="style/style.css" />
   </head>
   <body>
@@ -31,7 +32,20 @@
       </form>
       <div id="responseMessage" class="hide"></div>
     </div>
-
+    <div id="tasksList">
+      <ul class="task-list">
+        <li class="task-item">
+          <span class="task-number">1.</span>
+          <span class="task-title">Название задачи</span>
+          <span class="task-description">Описание задачи</span>
+          <div class="task-actions">
+            <button class="complete-btn">Выполнено</button>
+            <button class="change-btn">Изменить</button>
+            <button class="delete-btn">Удалить</button>
+          </div>
+        </li>
+      </ul>
+    </div>
     <script src="js/script.js"></script>
   </body>
 </html>
