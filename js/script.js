@@ -13,7 +13,6 @@ window.addEventListener("DOMContentLoaded", () => {
   };
 
   loadTasks();
-
   // Submiting data to server
 
   submitBtn.addEventListener("click", async (event) => {
@@ -30,7 +29,10 @@ window.addEventListener("DOMContentLoaded", () => {
     } else {
       const formData = new FormData(form);
 
-      const json = JSON.stringify(Object.fromEntries(formData.entries()));
+      const json = JSON.stringify({
+        ...Object.fromEntries(formData.entries()),
+        completed: false,
+      });
       try {
         const res = await createTask("http://localhost:3000/todos", json);
 
@@ -80,6 +82,7 @@ window.addEventListener("DOMContentLoaded", () => {
     constructor(title, description) {
       this.title = title;
       this.description = description;
+      this.completed = false;
     }
 
     render(taskNumber, taskId) {
@@ -91,7 +94,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <span class="task-title">${this.title}</span>
         <span class="task-description">${this.description}</span>
         <div class="task-actions">
-          <button class="complete-btn">Выполнено</button>
+          <button class="complete-btn" data-id="${taskId}">Выполнено</button>
           <button class="change-btn">Изменить</button>
           <button class="delete-btn" data-id="${taskId}">Удалить</button>
         </div>
@@ -107,11 +110,23 @@ window.addEventListener("DOMContentLoaded", () => {
 
       if (tasks.length > 0) {
         taskList.innerHTML = "";
-        tasks.forEach(({ id, title, description }, index) => {
+        tasks.forEach(({ id, title, description, completed }, index) => {
           const newTask = new TaskCard(title, description).render(
             index + 1,
             id
           );
+          const completeBtn = newTask.querySelector(".complete-btn");
+
+          if (completed) {
+            completeBtn.textContent = "Отмена";
+            newTask.style.backgroundColor = "#2ee95a";
+            completeBtn.style.backgroundColor = "red";
+          } else {
+            completeBtn.textContent = "Выполнено";
+            completeBtn.style.backgroundColor = "#28a745";
+            newTask.style.backgroundColor = "#fff";
+          }
+
           taskList.appendChild(newTask);
         });
       } else {
@@ -140,26 +155,27 @@ window.addEventListener("DOMContentLoaded", () => {
   // Task actions
 
   taskList.addEventListener("click", (event) => {
+    const taskId = event.target.dataset.id;
+
     if (event.target.matches(".complete-btn")) {
       const parent = event.target.closest(".task-item");
 
-      if (
-        event.target.matches(".complete-btn") &&
-        event.target.matches(".strike-through")
-      ) {
-        event.target.classList.remove("strike-through");
-        event.target.textContent = "Выполнено";
-
-        parent.style.backgroundColor = "#fff";
-      } else {
+      if (event.target.textContent === "Выполнено") {
         event.target.classList.add("strike-through");
         event.target.textContent = "Отмена";
-
+        event.target.style.backgroundColor = "red";
         parent.style.backgroundColor = "#2ee95a";
+
+        updateTaskStatus(taskId, true);
+      } else if (event.target.textContent === "Отмена") {
+        event.target.classList.remove("strike-through");
+        event.target.textContent = "Выполнено";
+        event.target.style.backgroundColor = "#28a745";
+        parent.style.backgroundColor = "#fff";
+
+        updateTaskStatus(taskId, false);
       }
     } else if (event.target.matches(".delete-btn")) {
-      const taskId = event.target.dataset.id;
-
       deleteTask(taskId);
     }
   });
@@ -182,3 +198,26 @@ window.addEventListener("DOMContentLoaded", () => {
       });
   }
 });
+
+async function updateTaskStatus(id, status) {
+  try {
+    const updatedStatus = {
+      completed: status,
+    };
+
+    const response = await fetch(`http://localhost:3000/todos/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-type": "application/json",
+      },
+
+      body: JSON.stringify(updatedStatus),
+    });
+
+    if (response.ok) {
+      console.log("Статус задачи обновлен!");
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
