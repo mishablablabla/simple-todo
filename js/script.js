@@ -95,7 +95,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <span class="task-description">${this.description}</span>
         <div class="task-actions">
           <button class="complete-btn" data-id="${taskId}">Выполнено</button>
-          <button class="change-btn">Изменить</button>
+          <button class="change-btn" data-id="${taskId}">Изменить</button>
           <button class="delete-btn" data-id="${taskId}">Удалить</button>
         </div>
       `;
@@ -154,6 +154,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Task actions
 
+  const changeBtn = document.querySelector(".change-btn"),
+    taskTitleText = document.querySelector(".task-title"),
+    taskDescriptionText = document.querySelector(".task-description");
+
   taskList.addEventListener("click", (event) => {
     const taskId = event.target.dataset.id;
 
@@ -161,63 +165,258 @@ window.addEventListener("DOMContentLoaded", () => {
       const parent = event.target.closest(".task-item");
 
       if (event.target.textContent === "Выполнено") {
-        event.target.classList.add("strike-through");
-        event.target.textContent = "Отмена";
-        event.target.style.backgroundColor = "red";
-        parent.style.backgroundColor = "#2ee95a";
-
-        updateTaskStatus(taskId, true);
+        toggleTaskStatus(
+          event.target,
+          "Отмена",
+          "red",
+          parent,
+          "#2ee95a",
+          true,
+          taskId
+        );
       } else if (event.target.textContent === "Отмена") {
-        event.target.classList.remove("strike-through");
-        event.target.textContent = "Выполнено";
-        event.target.style.backgroundColor = "#28a745";
-        parent.style.backgroundColor = "#fff";
+        showMessage("success", "Статус задачи обновлен!");
 
-        updateTaskStatus(taskId, false);
+        toggleTaskStatus(
+          event.target,
+          "Выполнено",
+          "#28a745",
+          parent,
+          "#fff",
+          false,
+          taskId
+        );
       }
     } else if (event.target.matches(".delete-btn")) {
       deleteTask(taskId);
+    } else if (event.target.matches(".change-btn")) {
+      const parent = event.target.closest(".task-item"),
+        num = parent.querySelector(".task-number"),
+        title = parent.querySelector(".task-title"),
+        descr = parent.querySelector(".task-description"),
+        statusBtn = parent.querySelector(".complete-btn"),
+        changeBtn = parent.querySelector(".change-btn"),
+        deleteBtn = parent.querySelector(".delete-btn");
+
+      changeTask(
+        title,
+        descr,
+        taskId,
+        parent,
+        num,
+        statusBtn,
+        changeBtn,
+        deleteBtn
+      );
     }
   });
 
-  function deleteTask(num) {
-    fetch(`http://localhost:3000/todos/${num}`, {
-      method: "DELETE",
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log("Задача удалена успешно");
-
-          loadTasks();
-        } else {
-          console.log("Произошла ошибка", response.status);
-        }
-      })
-      .catch((error) => {
-        console.error("Ошибка запроса:", error);
-      });
+  function toggleTaskStatus(
+    item,
+    completeBtn,
+    bckrColor,
+    parent,
+    color,
+    status,
+    taskId
+  ) {
+    item.textContent = completeBtn;
+    item.style.backgroundColor = bckrColor;
+    parent.style.backgroundColor = color;
+    updateTaskStatus(taskId, status);
   }
-});
 
-async function updateTaskStatus(id, status) {
-  try {
-    const updatedStatus = {
-      completed: status,
-    };
+  async function deleteTask(num) {
+    try {
+      const response = await fetch(`http://localhost:3000/todos/${num}`, {
+        method: "DELETE",
+      });
 
-    const response = await fetch(`http://localhost:3000/todos/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-type": "application/json",
-      },
+      if (response.ok) {
+        console.log("Задача удалена успешно");
 
-      body: JSON.stringify(updatedStatus),
+        showMessage("success", "Задача удалена успешно");
+        loadTasks();
+      } else {
+        console.log("Произошла ошибка", response.status);
+      }
+    } catch (error) {
+      console.error("Ошибка запроса:", error);
+    }
+  }
+
+  async function updateTaskStatus(id, status) {
+    try {
+      const updatedStatus = {
+        completed: status,
+      };
+
+      const response = await fetch(`http://localhost:3000/todos/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-type": "application/json",
+        },
+
+        body: JSON.stringify(updatedStatus),
+      });
+
+      if (response.ok) {
+        console.log("Статус задачи обновлен!");
+        showMessage("success", "Статус задачи обновлен!");
+      }
+    } catch (error) {
+      showMessage("fail", `Ошибка ${error}`);
+      console.error(error);
+    }
+  }
+
+  function changeTask(
+    title,
+    descr,
+    id,
+    parent,
+    num,
+    statusBtn,
+    changeBtn,
+    deleteBtn
+  ) {
+    parent.classList.add("highlight");
+
+    title.style.display = "none";
+    descr.style.display = "none";
+
+    const elementTitile = document.createElement("input"),
+      elementDescr = document.createElement("input");
+
+    elementTitile.classList.add("input-title");
+    elementDescr.classList.add("input-field");
+
+    elementTitile.type = "text";
+    elementDescr.type = "text";
+    elementTitile.placeholder = "Введите новый заголовок";
+    elementDescr.placeholder = "Введите новое описание ";
+
+    parent.insertBefore(elementTitile, num.nextSibling);
+    parent.insertBefore(elementDescr, elementTitile.nextSibling);
+
+    statusBtn.style.display = "none";
+    changeBtn.style.display = "none";
+    deleteBtn.style.display = "none";
+
+    const confirm = document.createElement("button"),
+      cancel = document.createElement("button");
+
+    confirm.classList.add("confirm-btn");
+    cancel.classList.add("cancel-btn");
+
+    confirm.textContent = "Подтвердить";
+    cancel.textContent = "Отмена";
+
+    parent.append(confirm);
+    parent.append(cancel);
+
+    confirm.addEventListener("click", async () => {
+      parent.classList.remove("highlight");
+
+      const updateTitile = parent.querySelector(".input-title").value,
+        updateDescr = parent.querySelector(".input-field").value;
+
+      dataToUpdate = {
+        title: updateTitile,
+        description: updateDescr,
+      };
+
+      try {
+        const response = await fetch(`http://localhost:3000/todos/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToUpdate),
+        });
+
+        if (response.ok) {
+          console.log("Описание задачи обновлено!");
+
+          showMessage("success", "Описание задачи обновлено!");
+        }
+
+        update(
+          statusBtn,
+          changeBtn,
+          deleteBtn,
+          title,
+          descr,
+          confirm,
+          cancel,
+          elementTitile,
+          elementDescr
+        );
+        loadTasks();
+      } catch (error) {
+        showMessage("fail", `Ошибка ${error}`);
+
+        console.error(error);
+      }
     });
 
-    if (response.ok) {
-      console.log("Статус задачи обновлен!");
-    }
-  } catch (error) {
-    console.error(error);
+    cancel.addEventListener("click", () => {
+      parent.classList.remove("highlight");
+
+      update(
+        statusBtn,
+        changeBtn,
+        deleteBtn,
+        title,
+        descr,
+        confirm,
+        cancel,
+        elementTitile,
+        elementDescr
+      );
+    });
   }
-}
+
+  function update(
+    statusBtn,
+    changeBtn,
+    deleteBtn,
+    title,
+    descr,
+    confirm,
+    cancel,
+    elementTitile,
+    elementDescr
+  ) {
+    statusBtn.style.display = "block";
+    changeBtn.style.display = "block";
+    deleteBtn.style.display = "block";
+    title.style.display = "block";
+    descr.style.display = "block";
+
+    confirm.remove();
+    cancel.remove();
+    elementTitile.remove();
+    elementDescr.remove();
+  }
+
+  function showMessage(status, descr) {
+    const notification = document.querySelector("#notificationMessage");
+
+    if (notification.classList.contains("show")) {
+      notification.classList.remove("show");
+    }
+
+    notification.textContent = descr;
+
+    notification.classList.remove("hide");
+    notification.classList.add("show");
+    notification.classList.add(status);
+
+    setTimeout(() => {
+      notification.classList.remove("show");
+      notification.classList.add("hide");
+      notification.classList.remove(status);
+    }, 5000);
+  }
+});
