@@ -266,3 +266,55 @@ button:hover {
     transform: translateX(-100%);
   }
 }
+
+select#taskPriority {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  outline: none;
+  cursor: pointer;
+}
+
+.changeTaskPriority {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin: 0 15px 0 0;
+  background-color: #fff;
+  outline: none;
+  cursor: pointer;
+}
+
+select#taskPriority:focus {
+  border-color: #007bff;
+}
+
+.task-priority {
+  margin: 0 10px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  cursor: not-allowed;
+  display: none;
+}
+
+.task-priority.low {
+  background-color: #28a745;
+  display: block;
+}
+
+.task-priority.medium {
+  background-color: #ffc107;
+  display: block;
+}
+
+.task-priority.high {
+  background-color: #dc3545;
+  display: block;
+}

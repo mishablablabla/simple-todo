@@ -28,6 +28,14 @@
           required
         ></textarea>
 
+        <label for="taskPriority">Приоритет задачи:</label>
+        <select id="taskPriority" name="priority" required>
+          <option value="none">None</option>
+          <option value="low">Низкий</option>
+          <option value="medium">Средний</option>
+          <option value="high">Высокий</option>
+        </select>
+
         <button id="submit_button" type="submit">Добавить задачу</button>
       </form>
       <div id="responseMessage" class="hide"></div>
@@ -42,6 +50,7 @@
           <span class="task-title">Название задачи</span>
           <span class="task-description">Описание задачи</span>
           <div class="task-actions">
+            <button class="task-priority low">Приоритет: Низкий</button>
             <button class="complete-btn">Выполнено</button>
             <button class="change-btn">Изменить</button>
             <button class="delete-btn">Удалить</button>

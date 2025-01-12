@@ -79,9 +79,10 @@ window.addEventListener("DOMContentLoaded", () => {
   // Class for list of tasks
 
   class TaskCard {
-    constructor(title, description) {
+    constructor(title, description, priority) {
       this.title = title;
       this.description = description;
+      this.priority = priority;
       this.completed = false;
     }
 
@@ -94,6 +95,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <span class="task-title">${this.title}</span>
         <span class="task-description">${this.description}</span>
         <div class="task-actions">
+            <button class="task-priority ${this.priority}">Приоритетность : ${this.priority}</button>
           <button class="complete-btn" data-id="${taskId}">Выполнено</button>
           <button class="change-btn" data-id="${taskId}">Изменить</button>
           <button class="delete-btn" data-id="${taskId}">Удалить</button>
@@ -110,25 +112,27 @@ window.addEventListener("DOMContentLoaded", () => {
 
       if (tasks.length > 0) {
         taskList.innerHTML = "";
-        tasks.forEach(({ id, title, description, completed }, index) => {
-          const newTask = new TaskCard(title, description).render(
-            index + 1,
-            id
-          );
-          const completeBtn = newTask.querySelector(".complete-btn");
+        tasks.forEach(
+          ({ id, title, description, priority, completed }, index) => {
+            const newTask = new TaskCard(title, description, priority).render(
+              index + 1,
+              id
+            );
+            const completeBtn = newTask.querySelector(".complete-btn");
 
-          if (completed) {
-            completeBtn.textContent = "Отмена";
-            newTask.style.backgroundColor = "#2ee95a";
-            completeBtn.style.backgroundColor = "red";
-          } else {
-            completeBtn.textContent = "Выполнено";
-            completeBtn.style.backgroundColor = "#28a745";
-            newTask.style.backgroundColor = "#fff";
+            if (completed) {
+              completeBtn.textContent = "Отмена";
+              newTask.style.backgroundColor = "#2ee95a";
+              completeBtn.style.backgroundColor = "red";
+            } else {
+              completeBtn.textContent = "Выполнено";
+              completeBtn.style.backgroundColor = "#28a745";
+              newTask.style.backgroundColor = "#fff";
+            }
+
+            taskList.appendChild(newTask);
           }
-
-          taskList.appendChild(newTask);
-        });
+        );
       } else {
         console.error("Список задач пуст");
       }
@@ -196,7 +200,8 @@ window.addEventListener("DOMContentLoaded", () => {
         descr = parent.querySelector(".task-description"),
         statusBtn = parent.querySelector(".complete-btn"),
         changeBtn = parent.querySelector(".change-btn"),
-        deleteBtn = parent.querySelector(".delete-btn");
+        deleteBtn = parent.querySelector(".delete-btn"),
+        priorityBtn = parent.querySelector(".task-priority");
 
       changeTask(
         title,
@@ -206,7 +211,8 @@ window.addEventListener("DOMContentLoaded", () => {
         num,
         statusBtn,
         changeBtn,
-        deleteBtn
+        deleteBtn,
+        priorityBtn
       );
     }
   });
@@ -278,7 +284,8 @@ window.addEventListener("DOMContentLoaded", () => {
     num,
     statusBtn,
     changeBtn,
-    deleteBtn
+    deleteBtn,
+    priorityBtn
   ) {
     parent.classList.add("highlight");
 
@@ -286,25 +293,38 @@ window.addEventListener("DOMContentLoaded", () => {
     descr.style.display = "none";
 
     const elementTitile = document.createElement("input"),
-      elementDescr = document.createElement("input");
+      elementDescr = document.createElement("input"),
+      changePriority = document.createElement("select");
+
+    changePriority.innerHTML = `
+        <option value="none">None</option>
+        <option value="low">Низкий</option>
+        <option value="medium">Средний</option>
+        <option value="high">Высокий</option>
+      `;
 
     elementTitile.classList.add("input-title");
     elementDescr.classList.add("input-field");
+    changePriority.classList.add("changeTaskPriority");
 
     elementTitile.type = "text";
     elementDescr.type = "text";
+    changePriority.name = "priority";
     elementTitile.placeholder = "Введите новый заголовок";
     elementDescr.placeholder = "Введите новое описание ";
 
     parent.insertBefore(elementTitile, num.nextSibling);
     parent.insertBefore(elementDescr, elementTitile.nextSibling);
+    parent.insertBefore(changePriority, elementDescr.nextSibling);
 
     statusBtn.style.display = "none";
+    priorityBtn.style.display = "none";
     changeBtn.style.display = "none";
     deleteBtn.style.display = "none";
 
     const confirm = document.createElement("button"),
-      cancel = document.createElement("button");
+      cancel = document.createElement("button"),
+      changeTaskPriority = document.querySelector(".changeTaskPriority");
 
     confirm.classList.add("confirm-btn");
     cancel.classList.add("cancel-btn");
@@ -319,11 +339,13 @@ window.addEventListener("DOMContentLoaded", () => {
       parent.classList.remove("highlight");
 
       const updateTitile = parent.querySelector(".input-title").value,
-        updateDescr = parent.querySelector(".input-field").value;
+        updateDescr = parent.querySelector(".input-field").value,
+        updatePriority = parent.querySelector(".changeTaskPriority").value;
 
       dataToUpdate = {
         title: updateTitile,
         description: updateDescr,
+        priority: updatePriority,
       };
 
       try {
@@ -350,7 +372,8 @@ window.addEventListener("DOMContentLoaded", () => {
           confirm,
           cancel,
           elementTitile,
-          elementDescr
+          elementDescr,
+          changeTaskPriority
         );
         loadTasks();
       } catch (error) {
@@ -372,7 +395,8 @@ window.addEventListener("DOMContentLoaded", () => {
         confirm,
         cancel,
         elementTitile,
-        elementDescr
+        elementDescr,
+        changeTaskPriority
       );
     });
   }
@@ -386,7 +410,8 @@ window.addEventListener("DOMContentLoaded", () => {
     confirm,
     cancel,
     elementTitile,
-    elementDescr
+    elementDescr,
+    priority
   ) {
     statusBtn.style.display = "block";
     changeBtn.style.display = "block";
@@ -398,6 +423,7 @@ window.addEventListener("DOMContentLoaded", () => {
     cancel.remove();
     elementTitile.remove();
     elementDescr.remove();
+    priority.remove();
   }
 
   function showMessage(status, descr) {
