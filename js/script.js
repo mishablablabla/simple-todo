@@ -398,6 +398,7 @@ window.addEventListener("DOMContentLoaded", () => {
         elementDescr,
         changeTaskPriority
       );
+      priorityBtn.style.display = "";
     });
   }
 

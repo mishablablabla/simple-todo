@@ -306,15 +306,18 @@ select#taskPriority:focus {
 
 .task-priority.low {
   background-color: #28a745;
+  border-left: 5px solid green;
   display: block;
 }
 
 .task-priority.medium {
   background-color: #ffc107;
+  border-left: 5px solid orange;
   display: block;
 }
 
 .task-priority.high {
   background-color: #dc3545;
+  border-left: 5px solid red;
   display: block;
 }
