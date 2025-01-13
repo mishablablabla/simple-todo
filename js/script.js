@@ -37,7 +37,7 @@ window.addEventListener("DOMContentLoaded", () => {
         priorityNum: numPriority(priorityOfTask),
       });
       try {
-        const res = await createTask("http://localhost:3000/todos", json);
+        const res = await createTask(dbUrl, json);
 
         showNotification(message.success, 2000);
         console.log("Задача добавлена:", res);
@@ -445,14 +445,21 @@ window.addEventListener("DOMContentLoaded", () => {
   filtrTask.addEventListener("change", (event) => {
     const value = event.target.value;
 
-    if (value === "priority") {
-      sortTaskListByPriority();
-    } else if (value === "completed") {
-      sortTaskListByCompleted();
-    } else if (value === "notCompleted") {
-      sortTaskListByNotCompleted();
-    } else if (value === "all") {
-      loadTasks();
+    switch (value) {
+      case "priority":
+        sortTaskListByPriority();
+        break;
+      case "completed":
+        sortTaskListByCompleted();
+        break;
+      case "notCompleted":
+        sortTaskListByNotCompleted();
+        break;
+      case "all":
+        loadTasks();
+        break;
+      default:
+        showMessage("fail", "Неизвестная фильтрация");
     }
   });
 
@@ -468,28 +475,37 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   async function sortTaskListByCompleted() {
-    taskList.innerHTML = "";
-
     const tasks = await getTasks(dbUrl),
+      arr = [],
       allNotCompleted = tasks.every((task) => task.completed === false);
     if (allNotCompleted) {
       showMessage("fail", "Ни одна задача еще не выполнена");
       loadTasks();
     } else {
-      const sortedTasks = tasks.sort((a, b) => b.completed - a.completed);
-      generatingTasks(sortedTasks);
+      taskList.innerHTML = "";
+
+      tasks.forEach((item) => {
+        if (item.completed === true) {
+          arr.push(item);
+        }
+      });
+      generatingTasks(arr);
     }
   }
 
   async function sortTaskListByNotCompleted() {
     taskList.innerHTML = "";
 
-    const tasks = await getTasks(dbUrl);
+    const tasks = await getTasks(dbUrl),
+      arr = [];
 
-    const sortedTasks = tasks.sort((a, b) => a.completed - b.completed);
-    console.log(sortedTasks);
+    tasks.forEach((item) => {
+      if (item.completed === false) {
+        arr.push(item);
+      }
+    });
 
-    generatingTasks(sortedTasks);
+    generatingTasks(arr);
   }
 
   function generatingTasks(arr) {
