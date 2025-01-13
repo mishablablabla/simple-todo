@@ -4,7 +4,8 @@ window.addEventListener("DOMContentLoaded", () => {
     taskDescription = document.querySelector("#taskDescription"),
     notification = document.querySelector("#responseMessage"),
     form = document.querySelector("#taskForm"),
-    taskList = document.querySelector(".task-list");
+    taskList = document.querySelector(".task-list"),
+    dbUrl = "http://localhost:3000/todos";
 
   const message = {
     success: "Успешно",
@@ -20,7 +21,8 @@ window.addEventListener("DOMContentLoaded", () => {
     console.log("Форма отправляется...");
 
     const titileOfTask = taskTitle.value,
-      descriptionOfTask = taskDescription.value;
+      descriptionOfTask = taskDescription.value,
+      priorityOfTask = document.querySelector("#taskPriority").value;
 
     if (!titileOfTask || !descriptionOfTask) {
       showNotification("Заполните все поля", 3000);
@@ -32,6 +34,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const json = JSON.stringify({
         ...Object.fromEntries(formData.entries()),
         completed: false,
+        priorityNum: numPriority(priorityOfTask),
       });
       try {
         const res = await createTask("http://localhost:3000/todos", json);
@@ -48,6 +51,20 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  function numPriority(priority) {
+    switch (priority) {
+      case "low":
+        return 1;
+      case "medium":
+        return 2;
+      case "high":
+        return 3;
+      case "none":
+      default:
+        return 0;
+    }
+  }
 
   function showNotification(message, time = 500) {
     notification.textContent = `${message}`;
@@ -107,32 +124,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
   async function loadTasks() {
     try {
-      const tasks = await getTasks("http://localhost:3000/todos");
+      const tasks = await getTasks(dbUrl);
       console.log("Полученные задачи:", tasks);
 
       if (tasks.length > 0) {
         taskList.innerHTML = "";
-        tasks.forEach(
-          ({ id, title, description, priority, completed }, index) => {
-            const newTask = new TaskCard(title, description, priority).render(
-              index + 1,
-              id
-            );
-            const completeBtn = newTask.querySelector(".complete-btn");
-
-            if (completed) {
-              completeBtn.textContent = "Отмена";
-              newTask.style.backgroundColor = "#2ee95a";
-              completeBtn.style.backgroundColor = "red";
-            } else {
-              completeBtn.textContent = "Выполнено";
-              completeBtn.style.backgroundColor = "#28a745";
-              newTask.style.backgroundColor = "#fff";
-            }
-
-            taskList.appendChild(newTask);
-          }
-        );
+        generatingTasks(tasks);
       } else {
         console.error("Список задач пуст");
       }
@@ -157,10 +154,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // Task actions
-
-  const changeBtn = document.querySelector(".change-btn"),
-    taskTitleText = document.querySelector(".task-title"),
-    taskDescriptionText = document.querySelector(".task-description");
 
   taskList.addEventListener("click", (event) => {
     const taskId = event.target.dataset.id;
@@ -445,5 +438,79 @@ window.addEventListener("DOMContentLoaded", () => {
       notification.classList.add("hide");
       notification.classList.remove(status);
     }, 5000);
+  }
+
+  const filtrTask = document.querySelector("#filter");
+
+  filtrTask.addEventListener("change", (event) => {
+    const value = event.target.value;
+
+    if (value === "priority") {
+      sortTaskListByPriority();
+    } else if (value === "completed") {
+      sortTaskListByCompleted();
+    } else if (value === "notCompleted") {
+      sortTaskListByNotCompleted();
+    } else if (value === "all") {
+      loadTasks();
+    }
+  });
+
+  async function sortTaskListByPriority() {
+    taskList.innerHTML = "";
+
+    const tasks = await getTasks(dbUrl);
+
+    const sortedTasks = tasks.sort((a, b) => b.priorityNum - a.priorityNum);
+    console.log(sortedTasks);
+
+    generatingTasks(sortedTasks);
+  }
+
+  async function sortTaskListByCompleted() {
+    taskList.innerHTML = "";
+
+    const tasks = await getTasks(dbUrl),
+      allNotCompleted = tasks.every((task) => task.completed === false);
+    if (allNotCompleted) {
+      showMessage("fail", "Ни одна задача еще не выполнена");
+      loadTasks();
+    } else {
+      const sortedTasks = tasks.sort((a, b) => b.completed - a.completed);
+      generatingTasks(sortedTasks);
+    }
+  }
+
+  async function sortTaskListByNotCompleted() {
+    taskList.innerHTML = "";
+
+    const tasks = await getTasks(dbUrl);
+
+    const sortedTasks = tasks.sort((a, b) => a.completed - b.completed);
+    console.log(sortedTasks);
+
+    generatingTasks(sortedTasks);
+  }
+
+  function generatingTasks(arr) {
+    arr.forEach(({ id, title, description, priority, completed }, index) => {
+      const newTask = new TaskCard(title, description, priority).render(
+        index + 1,
+        id
+      );
+      const completeBtn = newTask.querySelector(".complete-btn");
+
+      if (completed) {
+        completeBtn.textContent = "Отмена";
+        newTask.style.backgroundColor = "#2ee95a";
+        completeBtn.style.backgroundColor = "red";
+      } else {
+        completeBtn.textContent = "Выполнено";
+        completeBtn.style.backgroundColor = "#28a745";
+        newTask.style.backgroundColor = "#fff";
+      }
+
+      taskList.appendChild(newTask);
+    });
   }
 });

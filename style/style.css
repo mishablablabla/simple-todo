@@ -321,3 +321,39 @@ select#taskPriority:focus {
   border-left: 5px solid red;
   display: block;
 }
+
+.task-list:last-child {
+  margin-bottom: 100px;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 30px 55px;
+}
+
+.filter-container label {
+  font-size: 16px;
+  margin-right: 10px;
+  color: #333;
+}
+
+.filter-container select {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  outline: none;
+  background-color: #fff;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.filter-container select:focus {
+  border-color: #007bff;
+}
+
+.filter-container select:hover {
+  border-color: #0056b3;
+}
