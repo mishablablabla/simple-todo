@@ -37,7 +37,7 @@ This project is built using the following technologies:
 1. Clone the repository: (you have to have something like MAMP, and clone into htdocs folder)
 
    ```bash
-   git clone https://github.com/your-username/simple-todo.git
+   git clone https://github.com/mishablablabla/simple-todo.git
 
 2. Navigate to the project directory:
 
